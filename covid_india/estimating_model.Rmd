@@ -1,0 +1,94 @@
+---
+title: " Estimating $R_0$ by State for India"
+author: "Hariharan Jayashankar"
+date: "23/04/2020"
+output: html_document
+---
+
+# Introduction and the Model
+
+We want to estimate $R_0$. I follow a simple linear hierarchical model here. For a given state,
+we guess that the total number of cases $x$ follows this process:
+
+$$x_{t+5} = R_0x_t + \epsilon_t$$
+
+This is inspired from https://github.com/arnavs/ECON-326-Project. The time difference of 5 days comes from the median incubation period of the virus which seems to be around 5 days.
+
+A simple linear regression along a time series will also be able to estimate this. But will likely
+have large confidence intervals. Also we want to incorporate prior knowledge of the parameter $R_0$ into our data. Zhang et al ([link](https://www.ncbi.nlm.nih.gov/pubmed/32097725)) estimate an $R_0$ of 2.28 for covid-19 from the Diamond Princess.
+
+Because of this we use a basic hierarchical model from the bayesian literature to get estimates of $R_0$ by states.
+
+
+## The Model
+
+Specifying the model a bit more thoroughly, we can specify the evolution of total number of cases for each state $j$  in time period $t$ by
+
+$$\mu_{t+5,j} = R_{0, j}\mu_{t,j} + \beta_0$$
+
+Where 
+$$R_{0,j} \sim N(r_j, \sigma_{R,j})$$
+
+$$r_j \sim N(2.28, 2)$$ 
+
+
+$$\sigma_{R,j} \sim cauchy(0, 2.5)$$
+
+And our final outcome $y_{t,j} \sim N(\mu_{t,j}, \sigma)$. $\sigma \sim gamma(2,0.1)$.
+
+As of now, parameters for the priors have been chosen a bit at random except for $r_j$ whos mean is chosen according to [Zhang et al](https://www.ncbi.nlm.nih.gov/pubmed/32097725).
+
+# Estimating the Model
+
+## Reading in and cleaning the data
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+library(tidyverse)
+theme_set(theme_light())
+library(lubridate)
+
+```
+
+```{r}
+coeffs <- read_csv("./covid_india/coeff.csv")
+
+df_ind_coeff <- coeffs %>%
+    filter(state != "Population")
+
+pop_coeff <- coeffs %>%
+    filter(state == "Population")
+
+df_ind_coeff <- df_ind_coeff %>%
+    filter(abs(HI - LI) < 0.5)
+
+# reording based on R0 size
+df_ind_coeff$state_ro <- transform(df_ind_coeff$state, 
+                                   state_ro=reorder(df_ind_coeff$state,
+                                                    -df_ind_coeff$Median))$state_ro
+
+# Plotting Rs
+df_ind_coeff %>%
+    arrange(Median) %>%
+    ggplot(aes(x=state_ro,y=Median))+
+    geom_point() +
+    geom_linerange(aes(ymin=LI,ymax=HI)) +
+    geom_hline(data=pop_coeff,
+                 aes(yintercept=Median),
+                 color="blue",linetype="dashed") +
+    annotate("text", y=pop_coeff$Median - 0.03, x = 2, label= "India R0",
+             color = "blue", angle = 90) + 
+    coord_flip() +
+      labs(title = "R0 by State",
+           y = "Estimated R0",
+           x = "State",
+           caption = "Source: https://api.covid19india.org/") +
+    theme(plot.caption = element_text(color = "grey", 
+                                      face = "italic", 
+                                      hjust = 0))
+
+ggsave("./covid_india/r0_bysate.pdf",
+       height = 6, width = 9)
+```
+
+

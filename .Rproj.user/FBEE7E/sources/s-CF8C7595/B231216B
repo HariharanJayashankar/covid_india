@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1587635600340.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B231216B",
+    "lastKnownWriteTime" : 1587665126,
+    "last_content_update" : 1587665126795,
+    "path" : "C:/Users/Hariharan/Google Drive/personal/covid_stan/covid_india/covid_model.stan",
+    "project_path" : "covid_india/covid_model.stan",
+    "properties" : {
+        "cursorPosition" : "29,21",
+        "scrollLine" : "22",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "stan"
+}
