@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1587724557761.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D559CFD",
+    "lastKnownWriteTime" : 1587724395,
+    "last_content_update" : 1587724395,
+    "path" : "C:/Users/Hariharan/Google Drive/personal/covid_stan/code/analysis/simple_heir_estimation.R",
+    "project_path" : "code/analysis/simple_heir_estimation.R",
+    "properties" : {
+        "cursorPosition" : "13,38",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,3 +1,5 @@
+# Estimating hierarchical model for Covid in India
+
 library(tidyverse)
 theme_set(theme_bw())
 library(rstan)
@@ -6,31 +8,8 @@ rstan_options(auto_write = TRUE)
 library(lubridate)
 
 
-# Estiamting hierarchical model for Covid in India
-
-covid <- read_csv("https://api.covid19india.org/csv/latest/state_wise_daily.csv")
-
-# We want to reshape the dataset to long for easy analysis.
-covid <- covid %>%
-    pivot_longer(-c(Date, Status), names_to = "state", values_to = "value") %>%
-    rename_all(tolower)
-
-# formatting date
-covid <- covid %>%
-    mutate(date = dmy(date))
-
-# calculating total number of cases per day
-covid <- covid %>%
-    arrange(date) %>%
-    group_by(state, status) %>%
-    mutate(value_cumsum = cumsum(ifelse(is.na(value), 0, value)))
-
-# specifying outcome variable
-covid <- covid %>%
-    group_by(state, status) %>%
-    mutate(F5.value_cumsum = lead(value_cumsum, 5, order_by = date)) %>%
-    ungroup
-
+# Reading in processed data
+covid <- read_csv("./outdata/simple_heir_data.csv")
 
 # Specifying parameter values for stan
 
@@ -56,7 +35,7 @@ y <- covid_confirmed$F5.value_cumsum
 
 
 ## Running Stan
-m_hier<-stan(file="./simple_heir/covid_model.stan",
+m_hier<-stan(file="./code/analysis/simple_heir.stan",
              data=list(N=N,J=J,K=K,id=id,X=X,y=y))
 
 # == Storing Results == #
@@ -85,4 +64,4 @@ coeff_out <- bind_rows(df_ind_coeff, pop_lvl)
 
 # Saving data
 coeff_out %>%
-    write_csv("./simple_hier/coeff.csv")
+    write_csv("./outdata/simple_heir_coeff.csv")

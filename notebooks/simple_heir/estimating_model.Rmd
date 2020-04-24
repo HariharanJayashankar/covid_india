@@ -40,25 +40,108 @@ As of now, parameters for the priors have been chosen a bit at random except for
 
 # Estimating the Model
 
-Data wrangling and estimation is done using ./simple_heir/estimation.R
+Data wrangling is done by ./code/build/build_simple_heir_data.R. Estimation is done using
+./code/analysis/simple_heir_estimation.R.
 
 estimation.R makes use of covid_model.stan to estimate the model specified above. The estimates
-are then stored in "./simple_heir/coeffs.csv". That is what is read below to produce a plot
+are then stored in "./outdata/simple_heir_coeff.csv". That is what is read below to produce a plot
 of some of the estimates.
 
-## Reading in and cleaning the data
+## Exploring the Raw Data
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 
 library(tidyverse)
 theme_set(theme_light())
 library(lubridate)
+library(kableExtra)
 
 ```
 
-```{r}
-coeffs <- read_csv("./simple_heir/coeff.csv")
 
+Lets take a look at the rawdata.
+
+```{r message=FALSE, warning=FALSE}
+covid <- read_csv("./outdata/simple_heir_data.csv")
+```
+
+Daily counts refers to the number of new cases on a given day. The cumulative sum simply takes the
+sum of these for each state till a given day. So cumulative sum for a given date will tell you
+the total number of cases we had in a state on that date.
+
+```{r}
+covid %>% 
+  group_by(status) %>%
+  summarize(
+    "Mean" = mean(value, na.rm = T),
+    "Median" = median(value, na.rm = T),
+    "SD" = sd(value, na.rm = T),
+    "Min" = min(value, na.rm = T),
+    "Max" = max(value, na.rm = T),
+    "No. of Obs" = n()
+  ) %>%
+  kable(align = "c", caption = "Daily Count") %>%
+  kable_styling()
+```
+
+
+```{r}
+covid %>% 
+  group_by(status) %>%
+  summarize(
+    "Mean" = mean(value_cumsum, na.rm = T),
+    "Median" = median(value_cumsum, na.rm = T),
+    "SD" = sd(value_cumsum, na.rm = T),
+    "Min" = min(value_cumsum, na.rm = T),
+    "Max" = max(value_cumsum, na.rm = T),
+    "No. of Obs" = n()
+  ) %>% 
+  kable(align = "c", caption = "Cumulative Daily Count") %>%
+  kable_styling()
+```
+
+
+```{r}
+covid %>%
+    filter(status == "Confirmed" &
+               state %in% c("MH", "GJ", "KL")) %>%
+    ggplot() +
+    geom_line(aes(date, value_cumsum, color = state)) +
+    labs(title = "Time Series Cumulative Sum by State",
+         x = "",
+         y = "Total Confirmed",
+         color = "State",
+         caption = "Source: https://api.covid19india.org/") +
+    theme(plot.caption = element_text(color = "grey", face = "italic", 
+                                      hjust = 0))
+```
+
+Its easier to see these kind of exponential plots when we log the Y variable. Here is the plot but with the Y axis showing Log of cumulative confirmed cases.
+
+```{r}
+
+covid %>%
+    filter(status == "Confirmed" &
+               state %in% c("MH", "GJ", "KL")) %>%
+    ggplot() +
+    geom_line(aes(date, log(value_cumsum), color = state)) +
+    labs(title = "Time Series Log of Cumulative Sum by State",
+         x = "",
+         y = "Log of Total Confirmed",
+         color = "State",
+         caption = "Source: https://api.covid19india.org/") +
+    theme(plot.caption = element_text(color = "grey", face = "italic", 
+                                      hjust = 0))
+```
+
+It's clearer in the second plot that Gujarat is quickly "catching up" to Maharashtra in terms of the total number of cases. The effective reproduction number will essentially be an estimate of the slope of these time series graphs.
+
+
+```{r message=FALSE, warning=FALSE}
+coeffs <- read_csv("./outdata/simple_heir_coeff.csv")
+```
+
+```{r}
 df_ind_coeff <- coeffs %>%
     filter(state != "Population")
 
@@ -92,9 +175,14 @@ df_ind_coeff %>%
     theme(plot.caption = element_text(color = "grey", 
                                       face = "italic", 
                                       hjust = 0))
+```
 
-ggsave("./simple_heir/r0_bysate.png",
+```{r echo=FALSE}
+ggsave("./product/simple_heir_r_bysate.png",
        height = 6, width = 9)
 ```
+
+The estimates strengthen the intuition we got from the log plot. Gujarat seems to have the highest
+R. 
 
 
