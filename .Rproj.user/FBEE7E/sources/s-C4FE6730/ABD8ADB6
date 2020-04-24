@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1587708144237.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "528089831",
+    "id" : "ABD8ADB6",
+    "lastKnownWriteTime" : 1587723608,
+    "last_content_update" : 1587723608169,
+    "path" : "C:/Users/Hariharan/Google Drive/personal/covid_stan/simple_heir/estimating_model.Rmd",
+    "project_path" : "simple_heir/estimating_model.Rmd",
+    "properties" : {
+        "cursorPosition" : "26,19",
+        "scrollLine" : "8",
+        "working_dir" : "project"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,77 @@
+---
+title: "Exploring Covid India"
+author: "Hariharan Jayashankar"
+date: "23/04/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(rstan)
+theme_set(theme_minimal())
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+```
+
+
+Reading in crowd sourced data.
+
+Sourced from https://api.covid19india.org/.
+
+Note that TT is the total for India.
+
+```{r}
+covid <- read_csv("https://api.covid19india.org/csv/latest/state_wise_daily.csv")
+```
+
+We want to reshape the dataset to long for easy analysis.
+
+```{r}
+covid <- covid %>%
+    pivot_longer(-c(Date, Status), names_to = "state", values_to = "value") %>%
+    rename_all(tolower)
+```
+
+Also want to format date properly
+
+```{r}
+covid <- covid %>%
+    mutate(date = dmy(date))
+```
+
+All values listed are as on that date. We want a cumulative sum also.
+
+```{r}
+covid <- covid %>%
+    arrange(date) %>%
+    group_by(state, status) %>%
+    mutate(value_cumsum = cumsum(value))
+```
+
+
+What values of "status" do we have.
+
+```{r}
+cat("Unique Status Values:",unique(covid$status))
+```
+
+Lets plot for a couple of states.
+
+```{r}
+covid %>%
+    filter(status == "Confirmed" &
+               state %in% c("MH", "GJ", "KL")) %>%
+    ggplot() +
+    geom_line(aes(date, log(value_cumsum), color = state)) +
+    labs(title = "Time Series Cumulative Sum by State",
+         x = "",
+         y = "Log of Total Confirmed",
+         color = "State",
+         caption = "Source: https://api.covid19india.org/") +
+    theme(plot.caption = element_text(color = "grey", face = "italic", 
+                                      hjust = 0))
+
+ggsave("./covid_india/ts_state_cases.png",
+       height = 6, width = 9)
+```

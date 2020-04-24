@@ -1,0 +1,39 @@
+# Generating testing rates by state
+
+library(tidyverse)
+library(lubridate)
+
+testing <- read_csv("https://api.covid19india.org/csv/latest/statewise_tested_numbers_data.csv") %>%
+    rename_all(tolower) %>%
+    mutate(state = ifelse(state == "Odisha", "Orissa", state))
+state_pop <- read_csv("./rawdata/state_pop.csv") %>%
+    select(state, statecode, population) %>%
+    mutate(state = ifelse(state == "Odisha", "Orissa", state),
+           statecode = ifelse(statecode == "OD", "OR", statecode)) %>%
+    drop_na(state)
+
+# Merging testing and population data
+testing_pop <- testing %>%
+    left_join(state_pop, by = "state") %>%
+    select(state, statecode, population, `total tested`, `updated on`) %>%
+    rename(total_tested = `total tested`,
+           date = `updated on`) %>%
+    mutate(date = dmy(date))
+
+
+# Forward fill total tested
+testing_pop <- testing_pop %>%
+    group_by(state) %>%
+    arrange(date) %>%
+    fill(total_tested, population) %>%
+    fill(population, .direction = "up") %>%
+    ungroup %>%
+    mutate(total_tested = replace_na(total_tested, 0))
+
+# generating testing rates
+testing_pop <- testing_pop %>%
+    mutate(testing_rate = 1 + log(1 + total_tested/population))
+
+# Outputting
+testing_pop %>%
+    write_csv("./outdata/testing_rates_state.csv")
