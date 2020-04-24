@@ -40,6 +40,12 @@ As of now, parameters for the priors have been chosen a bit at random except for
 
 # Estimating the Model
 
+Data wrangling and estimation is done using ./simple_heir/estimation.R
+
+estimation.R makes use of covid_model.stan to estimate the model specified above. The estimates
+are then stored in "./simple_heir/coeffs.csv". That is what is read below to produce a plot
+of some of the estimates.
+
 ## Reading in and cleaning the data
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
